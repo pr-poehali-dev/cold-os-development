@@ -93,9 +93,21 @@
 @layer base {
   * {
     @apply border-border;
+    cursor:
+      url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 3L5 17L9 13L12 19L14 18L11 12L17 12L5 3Z' fill='white' stroke='black' stroke-width='1'/%3E%3C/svg%3E")
+        2 2,
+      auto;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  button,
+  a {
+    cursor:
+      url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 6L8 8M10 6L12 8M10 6V12M10 12L6 16M10 12L14 16M10 12L12 14' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='10' r='8' stroke='white' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")
+        12 12,
+      pointer;
   }
 }

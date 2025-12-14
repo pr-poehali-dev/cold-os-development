@@ -9,6 +9,7 @@ interface AppWindow {
   isOpen: boolean;
   isMinimized: boolean;
   zIndex: number;
+  position: { x: number; y: number };
 }
 
 interface DockApp {
@@ -34,6 +35,9 @@ const ColdOS = () => {
   const [brightness, setBrightness] = useState([80]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [draggingWindow, setDraggingWindow] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isRebooting, setIsRebooting] = useState(false);
 
   const wallpapers = [
     { id: 0, name: 'Морозная ночь', gradient: 'from-[#0a1628] via-[#1a2d4f] to-[#0d1b2e]' },
@@ -60,12 +64,12 @@ const ColdOS = () => {
   ];
 
   const dockApps: DockApp[] = [
-    { id: 'home', title: 'Главная', icon: 'Home', color: 'from-blue-400 to-blue-600' },
-    { id: 'apps', title: 'Приложения', icon: 'Grid3x3', color: 'from-cyan-400 to-cyan-600' },
-    { id: 'settings', title: 'Параметры', icon: 'Settings', color: 'from-purple-400 to-purple-600' },
-    { id: 'files', title: 'Файлы', icon: 'FolderOpen', color: 'from-indigo-400 to-indigo-600' },
-    { id: 'system', title: 'Система', icon: 'Monitor', color: 'from-sky-400 to-sky-600' },
-    { id: 'wallpaper', title: 'Обои', icon: 'Image', color: 'from-teal-400 to-teal-600' },
+    { id: 'home', title: 'Главная', icon: 'Home', color: 'from-blue-500 to-blue-600' },
+    { id: 'apps', title: 'Приложения', icon: 'LayoutGrid', color: 'from-gray-600 to-gray-700' },
+    { id: 'settings', title: 'Параметры', icon: 'Settings', color: 'from-slate-500 to-slate-600' },
+    { id: 'files', title: 'Файлы', icon: 'Folder', color: 'from-sky-500 to-sky-600' },
+    { id: 'system', title: 'Система', icon: 'Info', color: 'from-indigo-500 to-indigo-600' },
+    { id: 'wallpaper', title: 'Обои', icon: 'Palette', color: 'from-purple-500 to-purple-600' },
   ];
 
   useEffect(() => {
@@ -102,6 +106,7 @@ const ColdOS = () => {
         isOpen: true,
         isMinimized: false,
         zIndex: highestZIndex + 1,
+        position: { x: window.innerWidth / 2 - 350, y: window.innerHeight / 2 - 250 },
       };
       setWindows([...windows, newWindow]);
       setHighestZIndex(prev => prev + 1);
@@ -122,6 +127,56 @@ const ColdOS = () => {
     ));
     setHighestZIndex(prev => prev + 1);
   };
+
+  const handleMouseDown = (e: React.MouseEvent, windowId: string) => {
+    if ((e.target as HTMLElement).closest('.window-controls')) return;
+    const windowEl = windows.find(w => w.id === windowId);
+    if (windowEl) {
+      setDraggingWindow(windowId);
+      setDragOffset({
+        x: e.clientX - windowEl.position.x,
+        y: e.clientY - windowEl.position.y,
+      });
+      focusWindow(windowId);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (draggingWindow) {
+      setWindows(windows.map(w =>
+        w.id === draggingWindow
+          ? { ...w, position: { x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y } }
+          : w
+      ));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDraggingWindow(null);
+  };
+
+  const handleReboot = () => {
+    setIsRebooting(true);
+    setTimeout(() => {
+      setWindows([]);
+      setCurrentWallpaper(0);
+      setBrightness([80]);
+      setSoundEnabled(true);
+      setNotificationsEnabled(true);
+      setTimeout(() => setIsRebooting(false), 1000);
+    }, 2000);
+  };
+
+  useEffect(() => {
+    if (draggingWindow) {
+      window.addEventListener('mousemove', handleMouseMove as any);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove as any);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [draggingWindow, dragOffset]);
 
   const renderWindowContent = (window: AppWindow) => {
     switch (window.id) {
@@ -271,6 +326,13 @@ const ColdOS = () => {
                 <p className="text-white/60 text-sm mb-1">Хранилище</p>
                 <p className="text-white/90">512 GB Crystal SSD</p>
               </div>
+              <button
+                onClick={handleReboot}
+                className="w-full mt-6 flex items-center justify-center gap-3 p-4 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-all border border-red-400/30"
+              >
+                <Icon name="RotateCw" size={20} className="text-red-400" />
+                <span className="text-white/90 font-semibold">Перезагрузить систему</span>
+              </button>
             </div>
           </div>
         );
@@ -309,6 +371,17 @@ const ColdOS = () => {
     }
   };
 
+  if (isRebooting) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="Loader2" size={64} className="text-white animate-spin mb-4" />
+          <p className="text-white text-xl">Перезагрузка Cold-OS...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative w-full h-screen overflow-hidden bg-gradient-to-br ${wallpapers[currentWallpaper].gradient} transition-all duration-500`}>
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZyIgY3g9IjUwJSIgY3k9IjUwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBFQTVFOSIgc3RvcC1vcGFjaXR5PSIwLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwRUE1RTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=')] opacity-30"></div>
@@ -340,13 +413,21 @@ const ColdOS = () => {
           !window.isMinimized && (
             <div
               key={window.id}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300"
-              style={{ zIndex: window.zIndex }}
+              className="absolute w-[700px] h-[500px] bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden select-none"
+              style={{ 
+                zIndex: window.zIndex,
+                left: `${window.position.x}px`,
+                top: `${window.position.y}px`,
+                transition: draggingWindow === window.id ? 'none' : 'all 0.3s'
+              }}
               onClick={() => focusWindow(window.id)}
             >
-              <div className="h-12 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl border-b border-white/20 flex items-center justify-between px-4">
+              <div 
+                className="h-12 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl border-b border-white/20 flex items-center justify-between px-4 cursor-move"
+                onMouseDown={(e) => handleMouseDown(e, window.id)}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 window-controls">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
