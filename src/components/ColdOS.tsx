@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 
 interface AppWindow {
   id: string;
@@ -206,30 +204,47 @@ const ColdOS = () => {
         return (
           <div className="p-6 h-full overflow-auto">
             <h2 className="text-xl font-bold text-white mb-4">Параметры системы</h2>
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Icon name="Volume2" size={20} className="text-white/70" />
-                    <span className="text-white/90">Звук</span>
-                  </div>
-                  <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+            <div className="space-y-4">
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="w-full flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="Volume2" size={24} className="text-white/70" />
+                  <span className="text-white/90">Звук</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Icon name="Bell" size={20} className="text-white/70" />
-                    <span className="text-white/90">Уведомления</span>
-                  </div>
-                  <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                <div className={`w-12 h-6 rounded-full transition-all ${soundEnabled ? 'bg-blue-500' : 'bg-white/20'}`}>
+                  <div className={`w-5 h-5 mt-0.5 rounded-full bg-white transition-all ${soundEnabled ? 'ml-6' : 'ml-0.5'}`} />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 mb-2">
-                  <Icon name="Sun" size={20} className="text-white/70" />
+              </button>
+              
+              <button
+                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                className="w-full flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="Bell" size={24} className="text-white/70" />
+                  <span className="text-white/90">Уведомления</span>
+                </div>
+                <div className={`w-12 h-6 rounded-full transition-all ${notificationsEnabled ? 'bg-blue-500' : 'bg-white/20'}`}>
+                  <div className={`w-5 h-5 mt-0.5 rounded-full bg-white transition-all ${notificationsEnabled ? 'ml-6' : 'ml-0.5'}`} />
+                </div>
+              </button>
+
+              <div className="p-4 rounded-lg bg-white/5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Icon name="Sun" size={24} className="text-white/70" />
                   <span className="text-white/90">Яркость</span>
+                  <span className="ml-auto text-white/60">{brightness[0]}%</span>
                 </div>
-                <Slider value={brightness} onValueChange={setBrightness} max={100} step={1} />
-                <p className="text-white/60 text-sm">{brightness}%</p>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={brightness[0]}
+                  onChange={(e) => setBrightness([parseInt(e.target.value)])}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500"
+                />
               </div>
             </div>
           </div>
