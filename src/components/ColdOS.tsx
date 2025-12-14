@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
+import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 
 interface AppWindow {
   id: string;
@@ -17,11 +20,46 @@ interface DockApp {
   color: string;
 }
 
+interface FileItem {
+  id: string;
+  name: string;
+  type: 'folder' | 'file';
+  icon: string;
+}
+
 const ColdOS = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [windows, setWindows] = useState<AppWindow[]>([]);
   const [highestZIndex, setHighestZIndex] = useState(100);
   const [snowflakes, setSnowflakes] = useState<Array<{ id: number; x: number; y: number; delay: number }>>([]);
+  const [currentWallpaper, setCurrentWallpaper] = useState(0);
+  const [brightness, setBrightness] = useState([80]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const wallpapers = [
+    { id: 0, name: 'Морозная ночь', gradient: 'from-[#0a1628] via-[#1a2d4f] to-[#0d1b2e]' },
+    { id: 1, name: 'Северное сияние', gradient: 'from-[#0a1628] via-[#1a4d4f] to-[#0d2e1b]' },
+    { id: 2, name: 'Ледяной рассвет', gradient: 'from-[#1a2d4f] via-[#2d4f7a] to-[#4f7ab5]' },
+    { id: 3, name: 'Кристалл', gradient: 'from-[#1e1e2e] via-[#2e3e5e] to-[#3e4e6e]' },
+  ];
+
+  const files: FileItem[] = [
+    { id: '1', name: 'Документы', type: 'folder', icon: 'Folder' },
+    { id: '2', name: 'Изображения', type: 'folder', icon: 'FolderOpen' },
+    { id: '3', name: 'Зима.jpg', type: 'file', icon: 'FileImage' },
+    { id: '4', name: 'Проекты', type: 'folder', icon: 'Folder' },
+    { id: '5', name: 'Заметки.txt', type: 'file', icon: 'FileText' },
+  ];
+
+  const apps = [
+    { id: 'calc', name: 'Калькулятор', icon: 'Calculator', color: 'from-orange-400 to-orange-600' },
+    { id: 'notes', name: 'Заметки', icon: 'StickyNote', color: 'from-yellow-400 to-yellow-600' },
+    { id: 'browser', name: 'Браузер', icon: 'Globe', color: 'from-blue-400 to-blue-600' },
+    { id: 'music', name: 'Музыка', icon: 'Music', color: 'from-pink-400 to-pink-600' },
+    { id: 'terminal', name: 'Терминал', icon: 'Terminal', color: 'from-gray-600 to-gray-800' },
+    { id: 'camera', name: 'Камера', icon: 'Camera', color: 'from-purple-400 to-purple-600' },
+  ];
 
   const dockApps: DockApp[] = [
     { id: 'home', title: 'Главная', icon: 'Home', color: 'from-blue-400 to-blue-600' },
@@ -87,8 +125,177 @@ const ColdOS = () => {
     setHighestZIndex(prev => prev + 1);
   };
 
+  const renderWindowContent = (window: AppWindow) => {
+    switch (window.id) {
+      case 'home':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-2xl font-bold text-white mb-6">Добро пожаловать в Cold-OS</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4 bg-white/5 border-white/20">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="Clock" size={24} className="text-blue-400" />
+                  <h3 className="text-white font-semibold">Время</h3>
+                </div>
+                <p className="text-white/70 text-2xl">{currentTime.toLocaleTimeString('ru-RU')}</p>
+              </Card>
+              <Card className="p-4 bg-white/5 border-white/20">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="Calendar" size={24} className="text-purple-400" />
+                  <h3 className="text-white font-semibold">Дата</h3>
+                </div>
+                <p className="text-white/70">{currentTime.toLocaleDateString('ru-RU')}</p>
+              </Card>
+              <Card className="p-4 bg-white/5 border-white/20">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="Snowflake" size={24} className="text-cyan-400" />
+                  <h3 className="text-white font-semibold">Температура</h3>
+                </div>
+                <p className="text-white/70 text-xl">-15°C</p>
+              </Card>
+              <Card className="p-4 bg-white/5 border-white/20">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="Cpu" size={24} className="text-green-400" />
+                  <h3 className="text-white font-semibold">Система</h3>
+                </div>
+                <p className="text-white/70 text-sm">Активна</p>
+              </Card>
+            </div>
+          </div>
+        );
+
+      case 'apps':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Все приложения</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {apps.map(app => (
+                <button
+                  key={app.id}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+                >
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center`}>
+                    <Icon name={app.icon as any} size={32} className="text-white" />
+                  </div>
+                  <span className="text-white/90 text-sm">{app.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'files':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Файловый менеджер</h2>
+            <div className="space-y-2">
+              {files.map(file => (
+                <div
+                  key={file.id}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  <Icon name={file.icon as any} size={24} className={file.type === 'folder' ? 'text-blue-400' : 'text-white/70'} />
+                  <span className="text-white/90">{file.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'settings':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Параметры системы</h2>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Icon name="Volume2" size={20} className="text-white/70" />
+                    <span className="text-white/90">Звук</span>
+                  </div>
+                  <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Icon name="Bell" size={20} className="text-white/70" />
+                    <span className="text-white/90">Уведомления</span>
+                  </div>
+                  <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <Icon name="Sun" size={20} className="text-white/70" />
+                  <span className="text-white/90">Яркость</span>
+                </div>
+                <Slider value={brightness} onValueChange={setBrightness} max={100} step={1} />
+                <p className="text-white/60 text-sm">{brightness}%</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'system':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Информация о системе</h2>
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-white/5">
+                <p className="text-white/60 text-sm mb-1">Операционная система</p>
+                <p className="text-white/90 font-semibold">Cold-OS v1.0</p>
+              </div>
+              <div className="p-4 rounded-lg bg-white/5">
+                <p className="text-white/60 text-sm mb-1">Процессор</p>
+                <p className="text-white/90">Ice-Core 8x 3.5 GHz</p>
+              </div>
+              <div className="p-4 rounded-lg bg-white/5">
+                <p className="text-white/60 text-sm mb-1">Память</p>
+                <p className="text-white/90">16 GB Frozen RAM</p>
+              </div>
+              <div className="p-4 rounded-lg bg-white/5">
+                <p className="text-white/60 text-sm mb-1">Хранилище</p>
+                <p className="text-white/90">512 GB Crystal SSD</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'wallpaper':
+        return (
+          <div className="p-6 h-full overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Выбор обоев</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {wallpapers.map(wp => (
+                <button
+                  key={wp.id}
+                  onClick={() => setCurrentWallpaper(wp.id)}
+                  className={`relative h-32 rounded-xl bg-gradient-to-br ${wp.gradient} overflow-hidden transition-all ${
+                    currentWallpaper === wp.id ? 'ring-4 ring-white/50' : 'hover:scale-105'
+                  }`}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {currentWallpaper === wp.id && (
+                      <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <Icon name="Check" size={20} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="text-white text-sm font-medium">{wp.name}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-[#0a1628] via-[#1a2d4f] to-[#0d1b2e]">
+    <div className={`relative w-full h-screen overflow-hidden bg-gradient-to-br ${wallpapers[currentWallpaper].gradient} transition-all duration-500`}>
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZyIgY3g9IjUwJSIgY3k9IjUwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBFQTVFOSIgc3RvcC1vcGFjaXR5PSIwLjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwRUE1RTkiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=')] opacity-30"></div>
       
       {snowflakes.map(flake => (
@@ -118,7 +325,7 @@ const ColdOS = () => {
           !window.isMinimized && (
             <div
               key={window.id}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300"
               style={{ zIndex: window.zIndex }}
               onClick={() => focusWindow(window.id)}
             >
@@ -126,11 +333,17 @@ const ColdOS = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex gap-2">
                     <button
-                      onClick={() => closeWindow(window.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeWindow(window.id);
+                      }}
                       className="w-3 h-3 rounded-full bg-red-400/80 hover:bg-red-500 transition-colors"
                     />
                     <button
-                      onClick={() => minimizeWindow(window.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        minimizeWindow(window.id);
+                      }}
                       className="w-3 h-3 rounded-full bg-yellow-400/80 hover:bg-yellow-500 transition-colors"
                     />
                     <button className="w-3 h-3 rounded-full bg-green-400/80 hover:bg-green-500 transition-colors" />
@@ -138,10 +351,8 @@ const ColdOS = () => {
                   <span className="text-white/90 text-sm font-medium">{window.title}</span>
                 </div>
               </div>
-              <div className="p-8 h-[calc(100%-48px)] flex flex-col items-center justify-center text-white/70">
-                <Icon name={window.icon as any} size={64} className="mb-4 opacity-60" />
-                <h3 className="text-xl font-semibold mb-2 text-white/90">{window.title}</h3>
-                <p className="text-center text-sm">Приложение готово к работе</p>
+              <div className="h-[calc(100%-48px)]">
+                {renderWindowContent(window)}
               </div>
             </div>
           )
